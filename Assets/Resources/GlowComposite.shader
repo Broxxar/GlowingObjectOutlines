@@ -49,6 +49,7 @@
 			sampler2D _MainTex;
 			sampler2D _GlowPrePassTex;
 			sampler2D _GlowBlurredTex;
+			sampler2D _TempTex0;
 			float _Intensity;
 
 			fixed4 frag (v2f i) : SV_Target
