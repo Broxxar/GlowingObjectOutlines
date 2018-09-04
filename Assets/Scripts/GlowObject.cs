@@ -1,63 +1,46 @@
 ﻿using UnityEngine;
-using System.Collections.Generic;
 
-public class GlowObject : MonoBehaviour
-{
-	public Color GlowColor;
-	public float LerpFactor = 10;
+public class GlowObject : MonoBehaviour {
 
-	public Renderer[] Renderers
-	{
-		get;
-		private set;
-	}
+	public Color GlowColor = Color.white;
+	public float LerpFactor = 9f;
 
-	public Color CurrentColor
-	{
-		get { return _currentColor; }
-	}
+	public Renderer[] Renderers	{ get; private set;	}
+	public Color CurrentColor { get { return currentColor; } }
 
-	private List<Material> _materials = new List<Material>();
-	private Color _currentColor;
-	private Color _targetColor;
+	Color currentColor;
+	Color targetColor;
 
-	void Start()
-	{
+	void Start(){
 		Renderers = GetComponentsInChildren<Renderer>();
-
-		foreach (var renderer in Renderers)
-		{	
-			_materials.AddRange(renderer.materials);
-		}
+		enabled = false; //No reason to run unless activated
 	}
 
-	private void OnMouseEnter()
-	{
-		_targetColor = GlowColor;
+	void OnMouseEnter(){
+		EnableGlow();
+	}
+	void OnMouseExit(){
+		DisableGlow();
+	}
+	public void EnableGlow(){
 		enabled = true;
+		targetColor = GlowColor;
+		GlowController.Inst.RegisterObject(this);
 	}
-
-	private void OnMouseExit()
-	{
-		_targetColor = Color.black;
+	public void DisableGlow(){
 		enabled = true;
+		targetColor = Color.black; //Black is transparent for the glow shader
 	}
 
-	/// <summary>
-	/// Loop over all cached materials and update their color, disable self if we reach our target color.
-	/// </summary>
-	private void Update()
-	{
-		_currentColor = Color.Lerp(_currentColor, _targetColor, Time.deltaTime * LerpFactor);
-
-		for (int i = 0; i < _materials.Count; i++)
-		{
-			_materials[i].SetColor("_GlowColor", _currentColor);
-		}
-
-		if (_currentColor.Equals(_targetColor))
-		{
+	void Update(){ //Update color, disable script if it reaches target color
+		currentColor = Color.Lerp(currentColor, targetColor, Time.deltaTime * LerpFactor);
+		if (currentColor == targetColor){
+			if (targetColor == Color.black)
+				GlowController.Inst.DeRegisterObject(this);
+			else
+				GlowController.Inst.RebuildCommandBuffer(); //Rebuild at final color update if glowing
 			enabled = false;
-		}
+		} else
+			GlowController.Inst.RebuildCommandBuffer();
 	}
 }
