@@ -9,10 +9,10 @@ public sealed class GlowController : MonoBehaviour {
 
 	public float GlowIntensity { set { compositeShader.SetFloat(intensityID, value); } }
 	[Tooltip("Start value only. Cannot be changed in editor during runtime, but change through public setter works during runtime.")] //Pasting void Update(){GlowIntensity = glowIntensity;} somewhere in this class will allow testing the value easier, just remove it after for performance
-	[SerializeField][Range(0f, 10f)] float glowIntensity = 3;
+	[SerializeField][Range(0f, 10f)] float glowIntensity = 4f;
 
 	CommandBuffer glowBuff;
-	List<GlowObjectCmd> glowObjects = new List<GlowObjectCmd>();
+	List<GlowObject> glowObjects = new List<GlowObject>();
 	Material glowShader, blurShader, compositeShader;
 	Vector2 blurTexelSize;
 
@@ -38,7 +38,7 @@ public sealed class GlowController : MonoBehaviour {
 			Destroy(gameObject);
 #endregion
 		//Cache shaders and shader properties and setup command buffer to be called on a camera event (certain place in rendering pipeline)
-		glowShader = new Material(Shader.Find("Hidden/GlowCmdShader"));
+		glowShader = new Material(Shader.Find("Hidden/GlowShader"));
 		blurShader = new Material(Shader.Find("Hidden/Blur"));
 		compositeShader = new Material(Shader.Find("Hidden/GlowComposite"));
 
@@ -59,7 +59,7 @@ public sealed class GlowController : MonoBehaviour {
 	/// <summary>
 	/// Add object to list of glowing objects to be rendered.
 	/// </summary>
-	public void RegisterObject(GlowObjectCmd _glowObj){
+	public void RegisterObject(GlowObject _glowObj){
 		if (!glowObjects.Contains(_glowObj)){ //Inefficient list search, could probably optimize to be prevented at an object-level. My attempt checked script enabled status on object before running this method, but resulted in weird activation bugs
 			glowObjects.Add(_glowObj);
 		}
@@ -67,7 +67,7 @@ public sealed class GlowController : MonoBehaviour {
 	/// <summary>
 	/// Remove object from list of glowing objects to be rendered. Updates (rebuilds) buffer.
 	/// </summary>
-	public void DeRegisterObject(GlowObjectCmd _glowObj){
+	public void DeRegisterObject(GlowObject _glowObj){
 		glowObjects.Remove(_glowObj);
 		if (glowObjects.Count < 1) //Clearing for (almost)zero overhead when there's no active glow
 			glowBuff.Clear();

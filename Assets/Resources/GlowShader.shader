@@ -1,4 +1,4 @@
-﻿Shader "Hidden/GlowCmdShader" {
+﻿Shader "Hidden/GlowShader" {
 	SubShader {
 		Tags { "RenderType"="Opaque" }
 		LOD 100

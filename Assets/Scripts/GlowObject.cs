@@ -1,42 +1,46 @@
 ﻿using UnityEngine;
-using System.Collections.Generic;
 
 public class GlowObject : MonoBehaviour {
-	
+
 	public Color GlowColor = Color.white;
-	public float LerpFactor = 10;
+	public float LerpFactor = 9f;
 
-	List<Material> _materials = new List<Material>();
-	Color _currentColor;
-	Color _targetColor;
+	public Renderer[] Renderers	{ get; private set;	}
+	public Color CurrentColor { get { return currentColor; } }
 
-	void Start(){ //Grab materials in self and children to make sure they're all affected by the glow
-		var Renderers = GetComponentsInChildren<Renderer>();
+	Color currentColor;
+	Color targetColor;
 
-		for (int i = 0; i < Renderers.Length; i++){
-			_materials.AddRange(Renderers[i].materials);
-		}
+	void Start(){
+		Renderers = GetComponentsInChildren<Renderer>();
+		enabled = false; //No reason to run unless activated
 	}
 
 	void OnMouseEnter(){
-		_targetColor = GlowColor;
-		enabled = true;
+		EnableGlow();
 	}
-
 	void OnMouseExit(){
-		_targetColor = Color.black;
+		DisableGlow();
+	}
+	public void EnableGlow(){
 		enabled = true;
+		targetColor = GlowColor;
+		GlowController.Inst.RegisterObject(this);
+	}
+	public void DisableGlow(){
+		enabled = true;
+		targetColor = Color.black; //Black is transparent for the glow shader
 	}
 
-	void Update(){ //Loop over all cached materials and update their color, disable self if we reach our target color.
-		_currentColor = Color.Lerp(_currentColor, _targetColor, Time.deltaTime * LerpFactor);
-
-		for (int i = 0; i < _materials.Count; i++){
-			_materials[i].SetColor("_GlowColor", _currentColor); //Set shader-specific variable (not material color)
-		}
-
-		if (_currentColor == _targetColor){
+	void Update(){ //Update color, disable script if it reaches target color
+		currentColor = Color.Lerp(currentColor, targetColor, Time.deltaTime * LerpFactor);
+		if (currentColor == targetColor){
+			if (targetColor == Color.black)
+				GlowController.Inst.DeRegisterObject(this);
+			else
+				GlowController.Inst.RebuildCommandBuffer(); //Rebuild at final color update if glowing
 			enabled = false;
-		}
+		} else
+			GlowController.Inst.RebuildCommandBuffer();
 	}
 }
