@@ -55,6 +55,17 @@ public class GlowController : MonoBehaviour
 	}
 
 	/// <summary>
+	/// degister method
+	/// </summary>
+	public static void UnregisterObject(GlowObjectCmd glowObj)
+	{
+		if (_instance != null)
+		{
+			_instance._glowableObjects.Remove(glowObj);
+		}
+	}
+
+	/// <summary>
 	/// Adds all the commands, in order, we want our command buffer to execute.
 	/// Similar to calling sequential rendering methods insde of OnRenderImage().
 	/// </summary>
