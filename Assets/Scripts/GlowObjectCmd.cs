@@ -26,6 +26,10 @@ public class GlowObjectCmd : MonoBehaviour
 		GlowController.RegisterObject(this);
 	}
 
+	private void OnDestroy() {
+		GlowController.UnregisterObject(this);
+	}
+
 	private void OnMouseEnter()
 	{
 		_targetColor = GlowColor;
